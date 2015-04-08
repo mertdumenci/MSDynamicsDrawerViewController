@@ -972,6 +972,12 @@ static CGFloat const MSPaneThrowVelocityThreshold = 100.0;
         break;
     }
     case UIGestureRecognizerStateEnded: {
+        CGPoint panTranslation = [gestureRecognizer translationInView:self.view];
+        
+        CGPoint destinationPoint = [self.paneLayout paneCenterForPaneState:MSDynamicsDrawerPaneStateOpen direction:self.currentDrawerDirection];
+        CGPoint currentPoint = [self.paneLayout paneCenterWithTranslation:panTranslation fromCenter:paneStartCenter inDirection:self.currentDrawerDirection forBoundingStyle:self.paneLayout.boundingStyle];
+        CGFloat remainingX = destinationPoint.x - currentPoint.x;
+        
         // If there was no direction after the gesture, don't attempt to update to a new state
         if (self.currentDrawerDirection == MSDynamicsDrawerDirectionNone) {
             break;
@@ -980,12 +986,33 @@ static CGFloat const MSPaneThrowVelocityThreshold = 100.0;
         MSDynamicsDrawerPaneState throwState;
         CGPoint throwVelocity = [gestureRecognizer velocityInView:self.view];
         if ([self _paneShouldThrowToState:&throwState forVelocity:throwVelocity inDirection:self.currentDrawerDirection]) {
-            [self _addPanePositioningBehavior:self.panePositioningBehavior toPositionPaneInState:throwState withThrowVelocity:throwVelocity];
+            if (throwState == MSDynamicsDrawerPaneStateOpen) {
+                NSTimeInterval animationDuration = remainingX * 1.22 / throwVelocity.x;
+                
+                [UIView animateWithDuration:animationDuration animations:^{
+                    self.paneView.center = destinationPoint;
+                } completion:^(BOOL finished) {
+                    [self _setPaneViewControllerViewUserInteractionEnabled:(throwState == MSDynamicsDrawerPaneStateClosed)];
+                    [self setNeedsStatusBarAppearanceUpdate];
+                }];
+            } else {
+                [self _addPanePositioningBehavior:self.panePositioningBehavior toPositionPaneInState:throwState withThrowVelocity:throwVelocity];
+            }
         }
         // If not thrown, just update to nearest `paneState`
         else {
             MSDynamicsDrawerPaneState nearestPaneState = [self.paneLayout nearestStateForPaneWithCenter:self.paneView.center forDirection:self.currentDrawerDirection];
-            [self _addPanePositioningBehavior:self.panePositioningBehavior toPositionPaneInState:nearestPaneState withThrowVelocity:throwVelocity];
+
+            if (nearestPaneState == MSDynamicsDrawerPaneStateOpen) {
+                [UIView animateWithDuration:0.3 animations:^{
+                    self.paneView.center = destinationPoint;
+                } completion:^(BOOL finished) {
+                    [self _setPaneViewControllerViewUserInteractionEnabled:(throwState == MSDynamicsDrawerPaneStateClosed)];
+                    [self setNeedsStatusBarAppearanceUpdate];
+                }];
+            } else {
+                [self _addPanePositioningBehavior:self.panePositioningBehavior toPositionPaneInState:nearestPaneState withThrowVelocity:throwVelocity];
+            }
         }
         break;
     }
