@@ -639,13 +639,21 @@ static CGFloat const MSPaneBounceBehaviorDefaultPaneElasticity = 0.5;
     }
     
     if (animated) {
-        [self _addPanePositioningBehavior:self.panePositioningBehavior toPositionPaneInState:paneState];
-        if (!allowUserInterruption) [self _setViewUserInteractionEnabled:NO];
-        __weak typeof(self) weakSelf = self;
-        self._dynamicAnimatorCompletion = ^{
-            if (!allowUserInterruption) [weakSelf _setViewUserInteractionEnabled:YES];
-            if (completion) completion();
-        };
+        if (paneState == MSDynamicsDrawerPaneStateOpen) {
+            [UIView animateWithDuration:0.2 animations:^{
+                [self _setPaneState:paneState];
+            } completion:^(BOOL finished) {
+                if (completion) completion();
+            }];
+        } else {
+            [self _addPanePositioningBehavior:self.panePositioningBehavior toPositionPaneInState:paneState];
+            if (!allowUserInterruption) [self _setViewUserInteractionEnabled:NO];
+            __weak typeof(self) weakSelf = self;
+            self._dynamicAnimatorCompletion = ^{
+                if (!allowUserInterruption) [weakSelf _setViewUserInteractionEnabled:YES];
+                if (completion) completion();
+            };
+        }
     } else {
         [self _setPaneState:paneState];
         if (completion) completion();
@@ -987,7 +995,7 @@ static CGFloat const MSPaneThrowVelocityThreshold = 100.0;
         CGPoint throwVelocity = [gestureRecognizer velocityInView:self.view];
         if ([self _paneShouldThrowToState:&throwState forVelocity:throwVelocity inDirection:self.currentDrawerDirection]) {
             if (throwState == MSDynamicsDrawerPaneStateOpen) {
-                NSTimeInterval animationDuration = remainingX * 1.22 / throwVelocity.x;
+                NSTimeInterval animationDuration = remainingX / throwVelocity.x;
                 
                 [UIView animateWithDuration:animationDuration animations:^{
                     self.paneView.center = destinationPoint;
@@ -1004,7 +1012,7 @@ static CGFloat const MSPaneThrowVelocityThreshold = 100.0;
             MSDynamicsDrawerPaneState nearestPaneState = [self.paneLayout nearestStateForPaneWithCenter:self.paneView.center forDirection:self.currentDrawerDirection];
 
             if (nearestPaneState == MSDynamicsDrawerPaneStateOpen) {
-                [UIView animateWithDuration:0.3 animations:^{
+                [UIView animateWithDuration:0.2 animations:^{
                     self.paneView.center = destinationPoint;
                 } completion:^(BOOL finished) {
                     [self _setPaneViewControllerViewUserInteractionEnabled:(throwState == MSDynamicsDrawerPaneStateClosed)];
