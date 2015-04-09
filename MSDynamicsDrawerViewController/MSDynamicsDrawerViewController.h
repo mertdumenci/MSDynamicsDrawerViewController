@@ -300,6 +300,44 @@ typedef NS_ENUM(NSInteger, MSDynamicsDrawerPaneState) {
  */
 @property (nonatomic, readonly) MSDynamicsDrawerDirection possibleDrawerDirection;
 
+/// --------------------------------
+/// @name Configuring Directionality
+/// --------------------------------
+
+/**
+ If set, the dynamics will be active for only one pane state. The other directions will be animated to final state using a simple block based animation.
+ 
+ Default is NO.
+ 
+ @see gravitationalPaneState
+*/
+@property (nonatomic) BOOL unidirectionalDynamics;
+
+/**
+ The pane state for which the gravity interaction will be enabled for. All other pane states will have a simple animation to final state.
+ 
+ @see unidirectional
+ */
+@property (nonatomic) MSDynamicsDrawerPaneState gravitationalPaneState;
+
+/**
+ The coefficient for velocity in calculating the animation speed on non-gravitational pane states.
+ 
+ Default is 1. Higher will be faster.
+ 
+ @see unidirectional
+ */
+@property (nonatomic) CGFloat decayAnimationVelocityCoefficient;
+
+/**
+ Will be used for the decay animation when there's no usable velocity. (i.e. lifting finger in a stopping state halfway through pan)
+
+ Default is 0.2.
+ 
+ @see unidirectional
+*/
+@property (nonatomic) CGFloat decayAnimationFixedDuration;
+
 ///---------------------------
 /// @name Configuring Dynamics
 ///---------------------------
