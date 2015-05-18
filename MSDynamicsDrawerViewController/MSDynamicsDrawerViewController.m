@@ -151,6 +151,7 @@ BOOL MSDynamicsDrawerViewControllerShouldUseDynamicsForPaneState(BOOL unidirecti
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    
     if (!self.view.window) {
         [self.paneView addObserver:self forKeyPath:NSStringFromSelector(@selector(center)) options:0 context:NULL];
         [self _stylesWillMoveToDrawerViewController:self];
@@ -159,7 +160,8 @@ BOOL MSDynamicsDrawerViewControllerShouldUseDynamicsForPaneState(BOOL unidirecti
 
 - (void)viewDidDisappear:(BOOL)animated
 {
-    [super viewWillAppear:animated];
+    [super viewDidDisappear:animated];
+    
     if (!self.view.window) {
         [self _stylesWillMoveToDrawerViewController:nil];
         [self.paneView removeObserver:self forKeyPath:NSStringFromSelector(@selector(center))];
